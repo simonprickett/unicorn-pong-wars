@@ -25,17 +25,45 @@ BALL_SIZE = 2
 
 LOOP_SLEEP_TIME = 0.1
 
+class Square:
+    def __init__(self, x, y, size, is_day):
+        self.size = size
+        self.x = x
+        self.y = y
+        self.is_day = is_day
+        
+    def draw(self):
+        graphics.set_pen(DAY_PEN if self.is_day else NIGHT_PEN)
+        graphics.rectangle(self.x, self.y, self.size, self.size)
+        
+    def flip(self):
+        self.is_day = not self.is_day
+        self.draw()
+        
 class Ball:
-    def __init__(self, x, y, pen_colour, background_pen_colour):
+    def __init__(self, x, y, is_day):
         self.x = x
         self.y = y
         self.w = BALL_SIZE
         self.h = BALL_SIZE
-        self.pen = graphics.create_pen(*pen_colour)
-        self.background_pen = graphics.create_pen(*background_pen_colour)
+        self.is_day = is_day
+        self.pen = graphics.create_pen(*(DAY_BALL_COLOUR if is_day else NIGHT_BALL_COLOUR))
         self.dx = random.choice([-1, 1])
         self.dy = random.choice([-1, 1])
+
+    def __is_opposing(self, x, y):
+        # Get the co-ordinate for the square that x, y
+        # falls in.
+        row = y // SQUARE_SIZE
+        col = x // SQUARE_SIZE
         
+        # TODO have a think about this...
+        if squares[row][col].is_day == self.is_day:
+            print(f"Colour collision {x} {y}.")
+            return True
+        else:
+            return False
+            
         
     # TODO consider making this just the initial draw
     # and have next_position do everything else.
@@ -46,7 +74,7 @@ class Ball:
         
         
     def erase(self):
-        graphics.set_pen(self.background_pen)
+        graphics.set_pen(DAY_PEN if self.is_day else NIGHT_PEN)
         graphics.rectangle(self.x, self.y, self.h, self.w)
         
     
@@ -103,20 +131,14 @@ def init_squares():
     graphics.clear()
     
     # Draw the left hand half of the screen using the day colour
-    # and the right hand half using the night colour. Store the
-    # colour assignments in the 'squares' list.
+    # and the right hand half using the night colour.
     for x in range(0, DISPLAY_HEIGHT, SQUARE_SIZE):
         this_row = []
         
         for y in range(0, DISPLAY_WIDTH, SQUARE_SIZE):
-            if x < DISPLAY_MID_POINT:
-                graphics.set_pen(DAY_PEN)
-                this_row.append(DAY_COLOUR)
-            else:
-                graphics.set_pen(NIGHT_PEN)
-                this_row.append(NIGHT_COLOUR)
-                
-            graphics.rectangle(x, y, SQUARE_SIZE, SQUARE_SIZE)
+            this_square = Square(x, y, SQUARE_SIZE, x < DISPLAY_MID_POINT)
+            this_row.append(this_square)
+            this_square.draw()
             
         squares.append(this_row)
         
@@ -152,15 +174,13 @@ init_squares()
 day_ball = Ball(
     random.randrange(0, DISPLAY_MID_POINT, BALL_SIZE),
     random.randrange(0, DISPLAY_HEIGHT, BALL_SIZE),
-    DAY_BALL_COLOUR,
-    NIGHT_BALL_COLOUR
+    True
 )
 
 night_ball = Ball(
     random.randrange(DISPLAY_MID_POINT, DISPLAY_WIDTH, BALL_SIZE),
     random.randrange(0, DISPLAY_HEIGHT, BALL_SIZE),
-    NIGHT_BALL_COLOUR,
-    DAY_BALL_COLOUR
+    False
 )
                 
 draw_balls()
@@ -189,4 +209,4 @@ while True:
   
     # TODO put this back in when we've got movement down.
     #time.sleep(LOOP_SLEEP_TIME)
-    time.sleep(1/30)
+    time.sleep(0.5)
