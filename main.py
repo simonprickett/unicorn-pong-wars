@@ -11,8 +11,8 @@ DISPLAY_WIDTH = unicorn.WIDTH
 DISPLAY_HEIGHT = unicorn.HEIGHT
 DISPLAY_MID_POINT = DISPLAY_WIDTH // 2
 
-DAY_COLOUR = (209, 245, 66)
-NIGHT_COLOUR = (69, 66, 245)
+DAY_COLOUR = (0, 255, 0)
+NIGHT_COLOUR = (255, 0, 0)
 DAY_BALL_COLOUR = NIGHT_COLOUR
 NIGHT_BALL_COLOUR = DAY_COLOUR
 
@@ -35,6 +35,7 @@ class Ball:
         self.dx = random.choice([-1, 1])
         self.dy = random.choice([-1, 1])
         
+        
     # TODO consider making this just the initial draw
     # and have next_position do everything else.
     # Or can we just remove this completely?
@@ -42,38 +43,65 @@ class Ball:
         graphics.set_pen(self.pen)
         graphics.rectangle(self.x, self.y, self.h, self.w)
         
+        
     def erase(self):
         graphics.set_pen(self.background_pen)
         graphics.rectangle(self.x, self.y, self.h, self.w)
         
+        
+    def __handle_square_collisions(self):
+        # Need to look at colour of LEDs around the edge
+        # of the ball and flip squares that the ball is
+        # pressing against, plus update ball dx, dy after
+        # a collision.
+        return ""
+    
     def next_position(self):        
         next_x = self.x + self.dx
         next_y = self.y + self.dy
         next_dx = self.dx
         next_dy = self.dy
         
+        collisions = {
+            "left": False,
+            "right": False,
+            "top": False,
+            "bottom": False
+        }
+        
         if next_x <= 0:
-            # Collision with the left hand side of the display.
-            next_x = 0
-            next_dx = 1
+            collisions["left"] = True
             
         if next_y <= 0:
-            # Collision with the top of the display.
+            collisions["top"] = True
+            
+        if next_x + (self.w - (BALL_SIZE // 2)) == DISPLAY_WIDTH:
+            collisions["right"] = True
+
+        if next_y + (self.h - (BALL_SIZE // 2)) == DISPLAY_HEIGHT:
+            collisions["bottom"] = True
+            
+        # TODO work out collision with the coloured squares.
+        # Look at direction of travel and work out which squares are
+        # being "pushed against".
+        self.__handle_square_collisions()
+            
+        if collisions["top"] == True:
             next_y = 0
             next_dy = 1
             
-        if next_x + (self.w - (BALL_SIZE // 2)) == DISPLAY_WIDTH:
-            # Collision with the right hand side of the display.
+        if collisions["bottom"] == True:
+            next_y = self.y - 1
+            next_dy = -1            
+            
+        if collisions["left"] == True:
+            next_x = 0
+            next_dx = 1
+            
+        if collisions["right"] == True:
             next_x = self.x - 1
             next_dx = -1
-
-        if next_y + (self.h - (BALL_SIZE // 2)) == DISPLAY_HEIGHT:
-            # Collision with the bottom of the display.
-            next_y = self.y - 1
-            next_dy = -1
             
-        # TODO work out collision with the coloured squares.
-        
         self.x = next_x
         self.y = next_y
         self.dx = next_dx
@@ -107,16 +135,6 @@ def update_ball_positions():
     day_ball.next_position()
     night_ball.next_position()
     
-def check_collision(x, y, dx, dy):
-    # TODO
-    # TODO acc collision sound, optional?
-    return "TODO"
-
-
-def draw_frame():
-    # TODO draw a single frame.
-    return "TODO"
-
 
 # Set initial LED brightness.
 # TODO do we need to track this in a variable?
