@@ -49,26 +49,35 @@ class Ball:
     def next_position(self):        
         next_x = self.x + self.dx
         next_y = self.y + self.dy
+        next_dx = self.dx
+        next_dy = self.dy
         
-        if next_x < 0:
+        if next_x <= 0:
+            # Collision with the left hand side of the display.
             next_x = 0
+            next_dx = 1
             
-        if next_y < 0:
+        if next_y <= 0:
+            # Collision with the top of the display.
             next_y = 0
+            next_dy = 1
             
-        # TODO replace -1 here with a calculation.
-        if next_x + (self.w - 1) == DISPLAY_WIDTH:
-            next_x = self.x
+        if next_x + (self.w - (BALL_SIZE // 2)) == DISPLAY_WIDTH:
+            # Collision with the right hand side of the display.
+            next_x = self.x - 1
+            next_dx = -1
 
-        # TODO replace -1 here with a calculation.
-        if next_y + (self.h - 1) == DISPLAY_HEIGHT:
-            next_y = self.y
+        if next_y + (self.h - (BALL_SIZE // 2)) == DISPLAY_HEIGHT:
+            # Collision with the bottom of the display.
+            next_y = self.y - 1
+            next_dy = -1
             
-        # TODO adjust dx, dy... need to work out a
-        # transition table here.
+        # TODO work out collision with the coloured squares.
         
         self.x = next_x
         self.y = next_y
+        self.dx = next_dx
+        self.dy = next_dy
             
 
 def init_squares():
@@ -111,7 +120,7 @@ def draw_frame():
 
 # Set initial LED brightness.
 # TODO do we need to track this in a variable?
-unicorn.set_brightness(0.2)
+unicorn.set_brightness(0.1)
 
 frame_counter = 0
 
@@ -160,4 +169,4 @@ while True:
   
     # TODO put this back in when we've got movement down.
     #time.sleep(LOOP_SLEEP_TIME)
-    time.sleep(1)
+    time.sleep(1/30)
