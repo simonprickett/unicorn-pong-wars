@@ -49,13 +49,6 @@ class Ball:
         graphics.set_pen(self.background_pen)
         graphics.rectangle(self.x, self.y, self.h, self.w)
         
-        
-    def __handle_square_collisions(self):
-        # Need to look at colour of LEDs around the edge
-        # of the ball and flip squares that the ball is
-        # pressing against, plus update ball dx, dy after
-        # a collision.
-        return ""
     
     def next_position(self):        
         next_x = self.x + self.dx
@@ -84,11 +77,6 @@ class Ball:
         if next_y + (self.h - (BALL_SIZE // 2)) == DISPLAY_HEIGHT:
             collisions["bottom"] = True
             
-        # TODO work out collision with the coloured squares.
-        # Look at direction of travel and work out which squares are
-        # being "pushed against".
-        self.__handle_square_collisions()
-            
         if collisions["top"] == True:
             next_y = 0
             next_dy = 1
@@ -115,9 +103,9 @@ def init_squares():
     graphics.clear()
     
     # Draw the left hand half of the screen using the day colour
-    # and the right hand half using the night colour.
+    # and the right hand half using the night colour. Store the
+    # colour assignments in the 'squares' list.
     for x in range(0, DISPLAY_HEIGHT, SQUARE_SIZE):
-        # TODO start a new list for the loop below to store the square colour assignments.
         this_row = []
         
         for y in range(0, DISPLAY_WIDTH, SQUARE_SIZE):
