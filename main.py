@@ -6,6 +6,7 @@ from picographics import PicoGraphics, DISPLAY_COSMIC_UNICORN as DISPLAY
 
 unicorn = Unicorn()
 graphics = PicoGraphics(DISPLAY)
+squares = []
 
 DISPLAY_WIDTH = unicorn.WIDTH
 DISPLAY_HEIGHT = unicorn.HEIGHT
@@ -69,6 +70,8 @@ class Ball:
             "bottom": False
         }
         
+        # TODO add checks on all these ifs to see if the pixel is
+        # set to the opposing colour.
         if next_x <= 0:
             collisions["left"] = True
             
@@ -114,13 +117,24 @@ def init_squares():
     # Draw the left hand half of the screen using the day colour
     # and the right hand half using the night colour.
     for x in range(0, DISPLAY_HEIGHT, SQUARE_SIZE):
+        # TODO start a new list for the loop below to store the square colour assignments.
+        this_row = []
+        
         for y in range(0, DISPLAY_WIDTH, SQUARE_SIZE):
-            graphics.set_pen(DAY_PEN if x < DISPLAY_MID_POINT else NIGHT_PEN)
+            if x < DISPLAY_MID_POINT:
+                graphics.set_pen(DAY_PEN)
+                this_row.append(DAY_COLOUR)
+            else:
+                graphics.set_pen(NIGHT_PEN)
+                this_row.append(NIGHT_COLOUR)
+                
             graphics.rectangle(x, y, SQUARE_SIZE, SQUARE_SIZE)
+            
+        squares.append(this_row)
         
     unicorn.update(graphics)
-    
 
+    
 def draw_balls():
     day_ball.draw()
     night_ball.draw()
