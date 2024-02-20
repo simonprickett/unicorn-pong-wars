@@ -19,11 +19,12 @@ DISPLAY_MID_POINT = DISPLAY_WIDTH // 2
 
 DAY_COLOUR = (0, 255, 0)
 NIGHT_COLOUR = (255, 0, 0)
-DAY_BALL_COLOUR = NIGHT_COLOUR
-NIGHT_BALL_COLOUR = DAY_COLOUR
+DAY_BALL_COLOUR = (0, 0, 255)
+NIGHT_BALL_COLOUR = (255, 255, 255)
 
 DAY_PEN = graphics.create_pen(*DAY_COLOUR)
 NIGHT_PEN = graphics.create_pen(*NIGHT_COLOUR)
+DEBUG_PEN = graphics.create_pen(0, 0, 255)
 
 SQUARE_SIZE = 2
 BALL_SIZE = 2
@@ -45,6 +46,10 @@ class Square:
         self.is_day = not self.is_day
         self.draw()
         
+    def show(self):
+        graphics.set_pen(DEBUG_PEN)
+        graphics.rectangle(self.x, self.y, self.size, self.size)
+        
 class Ball:
     def __init__(self, x, y, is_day):
         self.x = x
@@ -57,18 +62,8 @@ class Ball:
         self.dy = random.choice([-1, 1])
 
     def __is_opposing(self, x, y):
-        # Get the co-ordinate for the square that x, y
-        # falls in.
-        row = y // SQUARE_SIZE
-        col = x // SQUARE_SIZE
-        
-        # TODO have a think about this...
-        if squares[row][col].is_day == self.is_day:
-            print(f"Colour collision {x} {y}.")
-            return True
-        else:
-            return False
-            
+        # TODO this needs work...
+        return False
         
     # TODO consider making this just the initial draw
     # and have next_position do everything else.
@@ -96,19 +91,33 @@ class Ball:
             "bottom": False
         }
         
-        # TODO add checks on all these ifs to see if the pixel is
-        # set to the opposing colour.
+        # Check for collisions with the sides of the Unicorn matrix.
+        
         if next_x <= 0:
             collisions["left"] = True
             
         if next_y <= 0:
             collisions["top"] = True
             
-        if next_x + (self.w - (BALL_SIZE // 2)) == DISPLAY_WIDTH:
+        if next_x + (self.w - 1) == DISPLAY_WIDTH:
             collisions["right"] = True
 
-        if next_y + (self.h - (BALL_SIZE // 2)) == DISPLAY_HEIGHT:
+        if next_y + (self.h - 1) == DISPLAY_HEIGHT:
             collisions["bottom"] = True
+           
+        # Check for collisions with a square of the opposing colour.
+        check_x = next_x # Left side of the ball.
+        check_y = next_y # Top of the ball.
+        
+        if self.dx == 1:
+            # Adjust check_x to be the rightmost side of the ball.
+            pass
+            
+        if self.dy == 1:
+            # Adjust check_y to be the bottom of the ball.
+            pass
+            
+        # Adjust movement and position accordingly.
             
         if collisions["top"] == True:
             next_y = 0
@@ -138,31 +147,31 @@ def init_squares():
     # Draw the left hand half of the screen using the day colour
     # and the right hand half using the night colour.
     for x in range(0, DISPLAY_HEIGHT, SQUARE_SIZE):
-        this_row = []
+        this_col = []
         
         for y in range(0, DISPLAY_WIDTH, SQUARE_SIZE):
             this_square = Square(x, y, SQUARE_SIZE, x < DISPLAY_MID_POINT)
-            this_row.append(this_square)
+            this_col.append(this_square)
             this_square.draw()
             
-        squares.append(this_row)
+        squares.append(this_col)
         
     unicorn.update(graphics)
 
     
 def draw_balls():
     day_ball.draw()
-    night_ball.draw()
+    #night_ball.draw()
     
 
 def erase_balls():
     day_ball.erase()
-    night_ball.erase()
+    #night_ball.erase()
     
     
 def update_ball_positions():
     day_ball.next_position()
-    night_ball.next_position()
+    #night_ball.next_position()
     
 
 # Set initial LED brightness.
@@ -219,4 +228,4 @@ while True:
     #time.sleep(LOOP_SLEEP_TIME)
     # TODO change this for faster loop cycle and calculate when
     # to update ball positions.
-    time.sleep(0.5)
+    time.sleep(0.4)
