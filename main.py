@@ -15,6 +15,8 @@ BRIGHTNESS_INCREMENT = 0.1
 
 DISPLAY_WIDTH = unicorn.WIDTH
 DISPLAY_HEIGHT = unicorn.HEIGHT
+DISPLAY_RIGHT = DISPLAY_WIDTH - 1
+DISPLAY_BOTTOM = DISPLAY_HEIGHT - 1
 DISPLAY_MID_POINT = DISPLAY_WIDTH // 2
 
 DAY_COLOUR = (0, 255, 0)
@@ -27,7 +29,8 @@ NIGHT_PEN = graphics.create_pen(*NIGHT_COLOUR)
 DEBUG_PEN = graphics.create_pen(0, 0, 255)
 
 SQUARE_SIZE = 2
-BALL_SIZE = 2
+SQUARES_WIDE = DISPLAY_WIDTH // SQUARE_SIZE
+SQUARES_HIGH = DISPLAY_HEIGHT // SQUARE_SIZE
 
 LOOP_SLEEP_TIME = 0.1
 
@@ -54,22 +57,17 @@ class Ball:
     def __init__(self, x, y, is_day):
         self.x = x
         self.y = y
-        self.w = BALL_SIZE
-        self.h = BALL_SIZE
+        self.w = SQUARE_SIZE
+        self.h = SQUARE_SIZE
         self.is_day = is_day
         self.pen = graphics.create_pen(*(DAY_BALL_COLOUR if is_day else NIGHT_BALL_COLOUR))
         self.dx = random.choice([-1, 1])
         self.dy = random.choice([-1, 1])
-
-    def __is_opposing(self, x, y):
-        # TODO this needs work...
-        return False
         
-    # TODO consider making this just the initial draw
-    # and have next_position do everything else.
-    # Or can we just remove this completely?
+        
     def draw(self):
         graphics.set_pen(self.pen)
+        print(f"draw x {self.x} y {self.y}")
         graphics.rectangle(self.x, self.y, self.h, self.w)
         
         
@@ -78,67 +76,63 @@ class Ball:
         graphics.rectangle(self.x, self.y, self.h, self.w)
         
     
-    def next_position(self):        
-        next_x = self.x + self.dx
-        next_y = self.y + self.dy
-        next_dx = self.dx
+    def next_position(self):
+        print(f"in: x = {self.x} y = {self.y}")
         next_dy = self.dy
+        next_dx = self.dx
         
-        collisions = {
-            "left": False,
-            "right": False,
-            "top": False,
-            "bottom": False
-        }
+        ball_right = self.x + (SQUARE_SIZE - 1)
+        ball_bottom = self.y + (SQUARE_SIZE - 1)
+        ball_col = (self.x if self.dx == -1 else ball_right) // SQUARE_SIZE
+        ball_row = (self.y if self.dy == -1 else ball_bottom) // SQUARE_SIZE
         
-        # Check for collisions with the sides of the Unicorn matrix.
+        #print(f"ball row {ball_row}, col {ball_col}")        
         
-        if next_x <= 0:
-            collisions["left"] = True
-            
-        if next_y <= 0:
-            collisions["top"] = True
-            
-        if next_x + (self.w - 1) == DISPLAY_WIDTH:
-            collisions["right"] = True
-
-        if next_y + (self.h - 1) == DISPLAY_HEIGHT:
-            collisions["bottom"] = True
-           
-        # Check for collisions with a square of the opposing colour.
-        check_x = next_x # Left side of the ball.
-        check_y = next_y # Top of the ball.
-        
-        if self.dx == 1:
-            # Adjust check_x to be the rightmost side of the ball.
-            pass
-            
-        if self.dy == 1:
-            # Adjust check_y to be the bottom of the ball.
-            pass
-            
-        # Adjust movement and position accordingly.
-            
-        if collisions["top"] == True:
-            next_y = 0
+        # Will we collide with the top of the display?
+        if self.dy == -1 and self.y == 0:
+            # Will collide with the top.
             next_dy = 1
             
-        if collisions["bottom"] == True:
-            next_y = self.y - 1
-            next_dy = -1            
-            
-        if collisions["left"] == True:
-            next_x = 0
+        # Will we collide with the bottom of the display?
+        if self.dy == 1 and ball_bottom == DISPLAY_BOTTOM:
+            # Will collide with the bottom.
+            next_dy = -1
+        
+        # Will we collide with the left of the display?
+        if self.dx == -1 and self.x == 0:
+            # Will collide with the left.
             next_dx = 1
-            
-        if collisions["right"] == True:
-            next_x = self.x - 1
+        
+        # Will we collide with the right of the display?
+        if self.dx == 1 and ball_right == DISPLAY_RIGHT:
+            # Will collide with the right.
             next_dx = -1
             
-        self.x = next_x
-        self.y = next_y
+        # Will we collide with a square of the opposing colour?
+        # TODO this is still all messed up... and needs to account for
+        # hits on all sides.  Also hits one pixel early?
+        if self.dx == 1:
+            squares_to_check = []
+            if (ball_col + 1) < SQUARES_WIDE:
+                squares_to_check.append(squares[ball_col + 1][ball_row])
+            
+            if self.dy == 1 and (ball_row + 1) < SQUARES_HIGH:
+                squares_to_check.append(squares[ball_col][ball_row + 1])
+            elif self.dy == -1 and ball_row -1 >= 0:
+                squares_to_check.append(squares[ball_col][ball_row - 1])
+            
+            for square in squares_to_check:            
+                if square.is_day != self.is_day:
+                    square.flip()
+                    
+                    next_dx = -1
+                
+        
         self.dx = next_dx
         self.dy = next_dy
+        self.x = self.x + self.dx
+        self.y = self.y + self.dy
+        print(f"out: x = {self.x} y = {self.y}")
             
 
 def init_squares():
@@ -185,14 +179,14 @@ init_squares()
 # The day ball must start on the left half of the display,
 # with the night ball on the right.
 day_ball = Ball(
-    random.randrange(0, DISPLAY_MID_POINT, BALL_SIZE),
-    random.randrange(0, DISPLAY_HEIGHT, BALL_SIZE),
+    random.randrange(0, DISPLAY_MID_POINT, SQUARE_SIZE),
+    random.randrange(0, DISPLAY_HEIGHT, SQUARE_SIZE),
     True
 )
 
 night_ball = Ball(
-    random.randrange(DISPLAY_MID_POINT, DISPLAY_WIDTH, BALL_SIZE),
-    random.randrange(0, DISPLAY_HEIGHT, BALL_SIZE),
+    random.randrange(DISPLAY_MID_POINT, DISPLAY_WIDTH, SQUARE_SIZE),
+    random.randrange(0, DISPLAY_HEIGHT, SQUARE_SIZE),
     False
 )
                 
@@ -228,4 +222,4 @@ while True:
     #time.sleep(LOOP_SLEEP_TIME)
     # TODO change this for faster loop cycle and calculate when
     # to update ball positions.
-    time.sleep(0.4)
+    time.sleep(0.2)
