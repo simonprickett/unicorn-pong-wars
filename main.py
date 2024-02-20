@@ -7,6 +7,11 @@ from picographics import PicoGraphics, DISPLAY_COSMIC_UNICORN as DISPLAY
 unicorn = Unicorn()
 graphics = PicoGraphics(DISPLAY)
 squares = []
+brightness = 0.1
+
+MIN_BRIGHTNESS = 0.1
+MAX_BRIGHTNESS = 0.5
+BRIGHTNESS_INCREMENT = 0.1
 
 DISPLAY_WIDTH = unicorn.WIDTH
 DISPLAY_HEIGHT = unicorn.HEIGHT
@@ -162,7 +167,7 @@ def update_ball_positions():
 
 # Set initial LED brightness.
 # TODO do we need to track this in a variable?
-unicorn.set_brightness(0.1)
+unicorn.set_brightness(brightness)
 
 frame_counter = 0
 
@@ -198,15 +203,21 @@ while True:
     unicorn.update(graphics)
     
     if unicorn.is_pressed(Unicorn.SWITCH_BRIGHTNESS_UP):
-        # TODO
-        pass
+        if (brightness + BRIGHTNESS_INCREMENT) <= MAX_BRIGHTNESS:
+            brightness = brightness + BRIGHTNESS_INCREMENT
+            unicorn.set_brightness(brightness)
+            unicorn.update(graphics)
 
     if unicorn.is_pressed(Unicorn.SWITCH_BRIGHTNESS_DOWN):
-        # TODO
-        pass
-    
+        if (brightness - BRIGHTNESS_INCREMENT) >= MIN_BRIGHTNESS:
+            brightness = brightness - BRIGHTNESS_INCREMENT
+            unicorn.set_brightness(brightness)
+            unicorn.update(graphics)
+
     # TODO check for volume button presses if sound code is added.
   
     # TODO put this back in when we've got movement down.
     #time.sleep(LOOP_SLEEP_TIME)
+    # TODO change this for faster loop cycle and calculate when
+    # to update ball positions.
     time.sleep(0.5)
