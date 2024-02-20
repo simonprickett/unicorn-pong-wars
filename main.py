@@ -166,7 +166,6 @@ def update_ball_positions():
     
 
 # Set initial LED brightness.
-# TODO do we need to track this in a variable?
 unicorn.set_brightness(brightness)
 
 frame_counter = 0
